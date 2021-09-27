@@ -1,0 +1,148 @@
+---
+title: "rayShaderIntroduction"
+author: "Duc Ngo
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    code_download: true
+---
+
+# Introduction: 
+
+What is rayshader? Why is this so cool and fun? During this presentation, we will talk about the way to use rayshader, why we want to use rayshader and also how to change from 2D graphics to 3D graphics using rayshader. 
+
+## How to install rayshader:
+
+First, in order to use rayshader, we need to install some library
+
+```{r}
+# install.packages("devtools")
+devtools::install_github("tylermorganwall/rayshader")
+```
+
+After we finished downloading the rayshader, we can try to see whether the library works or not. 
+
+```{r}
+library(rayshader)
+```
+
+If the library does not run, you shouold consider downloading XQuarz: https://www.xquartz.org/. Once you finish downloading XQuarz, hopefully, you can use Rayshader in your computer!
+
+## Why do we want to use rayshader?
+
+- Supporting 2D and 3D data visualisation
+
+- Directly transform the ggplot2 objects into 3D plot
+
+- Generate beautiful topographic 2D and 3D maps
+
+- Create a cinematic depth of field post-processing effect to direct the user’s focus to important regions in the figure
+
+With all of these features, it will be wonderful to consider rayshader to create beautiful visualization for your graphics!
+
+### Some beautiful rayshader graphics to explore:
+
+```{r}
+remotes::install_github("tylermorganwall/rayshader")
+library(rayshader)
+library(ggplot2)
+library(tidyverse)
+
+gg = ggplot(diamonds, aes(x, depth)) +
+  stat_density_2d(aes(fill = stat(nlevel)), 
+                  geom = "polygon",
+                  n = 100,bins = 10,contour = TRUE) +
+  facet_wrap(clarity~.) +
+  scale_fill_viridis_c(option = "A")
+plot_gg(gg,multicore=TRUE,width=5,height=5,scale=250)
+```
+
+```{r}
+library(rayshader)
+library(raster)
+library(osmdata)
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(magick)
+library(tibble)
+library(geoviz)
+```
+
+```{r}
+# Set lat long for area you would like to rayshade - this example looks at Plymouth to Cornwall
+lat = 50.3755
+lon = -4.1427
+# Set the km2 radius of the area  
+square_km = 80
+# Max tiles request fron 'mapzen' and 'stamen' - Increasing max_tiles results in a high res image (but will take more time)
+max_tiles = 40
+```
+
+```{r warning = False}
+dem <- mapzen_dem(lat, lon, square_km, max_tiles = max_tiles)
+```
+
+```{r}
+# Get a stamen overlay 
+overlay_image <-
+  slippy_overlay(dem,
+                 image_source = "stamen",
+                 image_type = "terrain",
+                 png_opacity = 0.3,
+                 max_tiles = max_tiles)
+```
+
+```{r}
+# Render the 'rayshader' scene 
+heightmap = matrix(
+  raster::extract(dem, raster::extent(dem), method = 'bilinear'),
+  nrow = ncol(dem),
+  ncol = nrow(dem)
+)
+```
+
+```{r}
+sunshade <- heightmap %>%
+  sphere_shade(sunangle = 270, texture = "imhof1") %>% 
+  add_overlay(overlay_image)
+```
+
+```{r}
+rayshader::plot_3d(
+  sunshade,
+  heightmap,
+  zscale = raster_zscale(dem) / 3,   
+  solid = TRUE,
+  shadow = FALSE,
+  soliddepth = -raster_zscale(dem),
+  water=TRUE,
+  waterdepth = 0.5,
+  wateralpha = 0.5,
+  watercolor = "lightblue",
+  waterlinecolor = "white",
+  waterlinealpha = 0.5
+)
+
+#add scale bar to plot
+render_scalebar(limits=c(0, 5, 10),label_unit = "km",position = "W", y=50,scale_length = c(0.33,1))
+#add north arrow to plot
+render_compass(position = "E")
+
+render_highquality(samples=200, scale_text_size = 24,clear=TRUE)
+rayshader::render_depth(
+ filename = "cornwall.png")
+```
+
+
+
+
+
+
+
+
+
+
+
