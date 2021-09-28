@@ -1,7 +1,7 @@
 ---
 title: 'Rayshader Exploration'
 author: "Duc Ngo, Jiashu Liu, Kashvi Ajitsaria"
-=======
+---
 output: 
   html_document:
     toc: true
@@ -11,7 +11,6 @@ output:
 ---
 
 # Introduction: 
-
 What is rayshader? Why is this so cool and fun? During this presentation, we will talk about the way to use rayshader, why we want to use rayshader and also how to change from 2D graphics to 3D graphics using rayshader. 
 
 ## How to install rayshader:
@@ -44,7 +43,7 @@ With all of these features, it will be wonderful to consider rayshader to create
 
 # Diffferent available features for Rayshader: 
 
-## rayshader has a single function to generate 3D plots using ggplot2 objects:
+## Rayshader has a single function to generate 3D plots using ggplot2 objects:
 
 plot_gg Takes a ggplot2 object (or a list of two ggplot2 objects) and uses the fill or color aesthetic to transform the plot into a 3D surface. You can pass any of the arguments used to specify the camera and the background/shadow colors in plot_3d(), and manipulate the displayed 3D plot using render_camera() and render_depth().
 
@@ -96,7 +95,7 @@ add_shadow takes two of the shadow maps above and combines them, scaling the sec
 
 `add_overlay` takes a 3 or 4-layer RGB/RGBA array and overlays it on the current map. If the map includes transparency, this is taken into account when overlaying the image. Otherwise, the user can specify a single color that will be marked as completely transparent, or set the full overlay as partly transparent.
 
-# Rayshader also has three functions to detect and add water to maps:
+## Rayshader also has three functions to detect and add water to maps:
 
 `detect_water` uses a flood-fill algorithm to detect bodies of water of a user-specified minimum area.
 
@@ -105,7 +104,7 @@ add_shadow takes two of the shadow maps above and combines them, scaling the sec
 `render_water` adds a 3D tranparent water layer to 3D maps, after the rgl device has already been created. This can either add to a map that does not already have a water layer, or replace an existing water layer on the map.
 
 
-# Also included are two functions to add additional effects and information to your 3D visualizations:
+## Also included are two functions to add additional effects and information to your 3D visualizations:
 
 `render_highquality` renders in the scene with a built-in pathtracer, powered by the rayrender package. Use this for high-quality maps with realistic light transport.
 
@@ -114,7 +113,7 @@ add_shadow takes two of the shadow maps above and combines them, scaling the sec
 `render_label` adds a text label to the x and y coordinate of the map at a specified altitude z (in units of the matrix). The altitude can either be specified relative to the elevation at that point (the default), or absolutely.
 
 
-# And four functions to display and save your visualizations:
+## And four functions to display and save your visualizations:
 
 `plot_map` Plots the current map. Accepts either a matrix or an array.
 
@@ -125,7 +124,7 @@ add_shadow takes two of the shadow maps above and combines them, scaling the sec
 `render_snapshot` Saves an image of the current 3D view to disk (if given a filename), or plots the 3D view to the current device (useful for including images in R Markdown files).
 render_movie Creates and saves a mp4 file of the camera rotating around the 3D scene by either using a built-in orbit or by using one provided by the user.
 
-# Plotting map and sphere_shade
+## Plotting map and sphere_shade
 
 ```{r}
 library(rayshader)
@@ -152,7 +151,7 @@ elmat %>%
   plot_map()
 ```
 
-# Detecting and Adding Water
+## Detecting and Adding Water
 
 ```{r}
 #detect_water and add_water adds a water layer to the map:
@@ -162,7 +161,7 @@ elmat %>%
   plot_map()
 ```
 
-# Adding Shadow
+## Adding Shadow
 
 ```{r}
 #And we can add a raytraced layer from that sun direction as well:
@@ -173,7 +172,7 @@ elmat %>%
   plot_map()
 ```
 
-# Adding Ambient Occlusion Shadow Layer
+## Adding Ambient Occlusion Shadow Layer
 
 ```{r}
 #And here we add an ambient occlusion shadow layer, which models 
@@ -187,7 +186,7 @@ elmat %>%
   plot_map()
 ```
 
-# Plotting in 3D
+## Plotting in 3D
 
 ```{r}
 elmat %>%
@@ -200,7 +199,7 @@ Sys.sleep(0.2)
 render_snapshot()
 ```
 
-# Adding Scale
+## Adding Scale
 
 ```{r}
 render_camera(fov = 0, theta = 60, zoom = 0.75, phi = 45)
@@ -209,6 +208,113 @@ render_scalebar(limits=c(0, 5, 10),label_unit = "km",position = "W", y=50,
 render_compass(position = "E")
 render_snapshot(clear=TRUE)
 ```
+
+# The problem set: 
+
+Below is our problem set about the Hong Kong housing price. We have given the datasets, the 2d Plots and also some information below. 
+
+```{r}
+library(readxl)
+library(sp)
+library(ggplot2)
+library(png)
+library(grid)
+library(rayshader)
+library(rgl)
+```
+
+```{r}
+## Here is the 3 datasets
+district_name = read_excel('District Name.xlsx',1)
+population = read_excel('Population Data.xlsx',1)
+colnames(population) = c("Chi_name", "Population")
+
+hkmap = readRDS("HKG_adm1.rds")
+```
+
+```{r}
+# The [reprocessing part
+map_data = data.frame(id=hkmap$ID_1, Code=hkmap$HASC_1, Eng_name=hkmap$NAME_1)
+map_data$Code = gsub('HK.', '', as.character(map_data$Code))
+map_data = merge(map_data, district_name, by = 'Eng_name')
+hkmapdf = fortify(hkmap)
+map_data = merge(hkmapdf, map_data, by="id")
+map_data = merge(map_data, population, by = "Chi_name")
+map_data$Population = as.numeric(map_data$Population)
+```
+
+
+```{r}
+# Here is the code to create a 2D map in Hongkong.
+# Map
+map_bg = ggplot(map_data, aes(long, lat, group=group, fill = Population)) +
+  geom_polygon() + # Shape
+  scale_fill_gradient(limits=range(map_data$Population), 
+                      low="#FFF3B0", high="#E09F3E") + # Population Density Color
+  layer(geom="path", stat="identity", position="identity", 
+       mapping=aes(x=long, y=lat, group=group, 
+                   color=I('#FFFFFF'))) # Boarder Color
+  
+map_bg = map_bg + theme(legend.position = "none", 
+                        axis.line=element_blank(), 
+                        axis.text.x=element_blank(), axis.title.x=element_blank(),
+                        axis.text.y=element_blank(), axis.title.y=element_blank(),
+                        axis.ticks=element_blank(), 
+                        panel.background = element_blank()) # Clean Everything
+map_bg
+```
+
+```{r}
+# Save as PNG
+xlim = ggplot_build(map_bg)$layout$panel_scales_x[[1]]$range$range
+ylim = ggplot_build(map_bg)$layout$panel_scales_y[[1]]$range$range
+ggsave('map_bg.png', width = diff(xlim)*40, height = diff(ylim)*40, units = "cm")
+```
+
+```{r}
+# Real Estate Dataset
+estate_df = readr::read_csv('https://raw.githubusercontent.com/cydalytics/HK_Properties_Price_Distribution/master/real_estate_master_df.csv')
+estate_df$apr_price = as.numeric(gsub('[^0-9]', '', estate_df$Price_Per_SqFeet_Apr2020))
+estate_df$mar_price = as.numeric(gsub('[^0-9]', '', estate_df$Price_Per_SqFeet_Mar2020))
+```
+
+```{r}
+# Read Background Image
+hk_map_bg = readPNG('map_bg.png')
+```
+
+Here is the 2D map that we need to turn into 3D. 
+
+```{r}
+# 2D Plot
+library(ggplot2)
+library(grid)
+estate_price = ggplot(estate_df) + 
+  annotation_custom(rasterGrob(hk_map_bg, width=unit(1,"npc"), height=unit(1,"npc")), 
+                    -Inf, Inf, -Inf, Inf) + # Background
+  xlim(xlim[1],xlim[2]) + # x-axis Mapping
+  ylim(ylim[1],ylim[2]) + # y-axis Mapping
+  geom_point(aes(x=Longitude, y=Latitude, color=apr_price), size=2) + # Points
+  scale_colour_gradient(name = 'Price per square foot (real)\n(HKD)', 
+                        limits=range(estate_df$apr_price), 
+                        low="#FCB9B2", high="#B23A48") + # Price Density Color
+  theme(axis.line=element_blank(), 
+        axis.text.x=element_blank(), axis.title.x=element_blank(),
+        axis.text.y=element_blank(), axis.title.y=element_blank(),
+        axis.ticks=element_blank(), 
+        panel.background = element_blank()) # Clean Everything
+estate_price
+ggsave('estate_price.png', width = diff(xlim)*40, height = diff(ylim)*40, units = "cm")
+```
+
+After seeing the graph, the two questions we have will be: 
+
+1) How is the population distribution in Hong Kong? Is the estate price higher in densely populated district?
+
+2) How to transfer a 2D plot to a 3D plot? Do you think creating a 3D plot will be a good idea in here? Why is that? 
+
+
+
 
 
 
