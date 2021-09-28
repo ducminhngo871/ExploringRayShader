@@ -1,6 +1,5 @@
 ---
-title: "Rayshader"
-author: "Duc Ngo, Kashvi Ajisaria, Jiashu Liu
+title: 'Rayshader Exploration'
 output: 
   html_document:
     toc: true
@@ -23,7 +22,6 @@ devtools::install_github("tylermorganwall/rayshader")
 ```
 
 After we finished downloading the rayshader, we can try to see whether the library works or not. 
-
 ```{r}
 library(rayshader)
 ```
