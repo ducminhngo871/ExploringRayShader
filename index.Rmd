@@ -1,7 +1,6 @@
 ---
 title: 'Rayshader Exploration'
 author: "Duc Ngo, Jiashu Liu, Kashvi Ajitsaria"
----
 output: 
   html_document:
     toc: true
