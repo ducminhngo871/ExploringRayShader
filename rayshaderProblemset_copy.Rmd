@@ -24,6 +24,7 @@ library(grid)
 library(rayshader)
 library(rgl)
 ```
+
 How is the population distribution in Hong Kong? Is the estate price higher in densely populated district?
 
 ```{r}
