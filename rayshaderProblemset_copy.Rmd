@@ -109,6 +109,8 @@ ggsave('estate_price.png', width = diff(xlim)*40, height = diff(ylim)*40, units 
 ```
 So How to transfer a 2D plot to a 3D plot?
 
+rayshader uses elevation data in a base R matrix and a combination of raytracing , spherical texture mapping, overlays, and ambient occlusion to generate beautiful topographic 2D and 3D maps. In addition to maps, rayshader also allows the users to translate ggplot2 objects into beautiful 3D visualizations. 
+
 ```{r}
 # 3D Plot
 plot_gg(estate_price, multicore = TRUE, width = diff(xlim)*10 ,height=diff(ylim)*10, fov = 70, scale = 300)
