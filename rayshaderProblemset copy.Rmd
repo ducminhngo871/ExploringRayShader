@@ -107,7 +107,7 @@ estate_price = ggplot(estate_df) +
 estate_price
 ggsave('estate_price.png', width = diff(xlim)*40, height = diff(ylim)*40, units = "cm")
 ```
-
+So How to transfer a 2D plot to a 3D plot?
 
 ```{r}
 # 3D Plot
