@@ -24,7 +24,7 @@ library(grid)
 library(rayshader)
 library(rgl)
 ```
-
+How is the population distribution in Hong Kong? Is the estate price higher in densely populated district?
 
 ```{r}
 district_name = read_excel('District Name.xlsx',1)
@@ -44,6 +44,8 @@ map_data = merge(hkmapdf, map_data, by="id")
 map_data = merge(map_data, population, by = "Chi_name")
 map_data$Population = as.numeric(map_data$Population)
 ```
+
+
 ```{r}
 # Map
 map_bg = ggplot(map_data, aes(long, lat, group=group, fill = Population)) +
@@ -94,7 +96,7 @@ estate_price = ggplot(estate_df) +
   xlim(xlim[1],xlim[2]) + # x-axis Mapping
   ylim(ylim[1],ylim[2]) + # y-axis Mapping
   geom_point(aes(x=Longitude, y=Latitude, color=apr_price), size=2) + # Points
-  scale_colour_gradient(name = '成交呎價(實)\n(HKD)', 
+  scale_colour_gradient(name = 'Price per square foot (real)\n(HKD)', 
                         limits=range(estate_df$apr_price), 
                         low="#FCB9B2", high="#B23A48") + # Price Density Color
   theme(axis.line=element_blank(), 
@@ -104,14 +106,15 @@ estate_price = ggplot(estate_df) +
         panel.background = element_blank()) # Clean Everything
 estate_price
 ggsave('estate_price.png', width = diff(xlim)*40, height = diff(ylim)*40, units = "cm")
-
-
 ```
+
 
 ```{r}
 # 3D Plot
 plot_gg(estate_price, multicore = TRUE, width = diff(xlim)*10 ,height=diff(ylim)*10, fov = 70, scale = 300)
 ```
+
+
 ```{r}
 # Windows Size Setting
 library(rgl)
@@ -128,6 +131,8 @@ zoomvec = 0.45 + 0.2 * 1/(1 + exp(seq(-5, 20, length.out = 180)))
 zoomvecfull = c(zoomvec, rev(zoomvec))
 render_movie(filename = 'output1', type = "custom", frames = 360,  phi = phivecfull, zoom = zoomvecfull, theta = thetavec)
 ```
+
+
 ```{r}
 # Video 2
 transition_values <- function(from, to, steps = 10, one_way = FALSE, type = "cos") {
